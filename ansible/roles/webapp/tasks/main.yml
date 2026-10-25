@@ -1,0 +1,67 @@
+
+---
+- name: Create application directory
+  ansible.builtin.file:
+    path: "{{ app_directory }}"
+    state: directory
+    mode: "0755"
+  tags:
+    - setup
+
+- name: Copy application source
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../app/server.js"
+    dest: "{{ app_directory }}/server.js"
+    mode: "0644"
+  register: app_source
+  notify: Rebuild and deploy application
+  tags:
+    - deploy
+
+- name: Copy Dockerfile
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../Dockerfile"
+    dest: "{{ app_directory }}/Dockerfile"
+    mode: "0644"
+  register: dockerfile_source
+  notify: Rebuild and deploy application
+  tags:
+    - deploy
+
+- name: Check whether Docker image exists
+  community.docker.docker_image_info:
+    name: "{{ app_name }}:{{ app_version }}"
+  register: image_info
+  tags:
+    - build
+    - deploy
+
+- name: Build image when it is missing and files did not change
+  community.docker.docker_image:
+    name: "{{ app_name }}"
+    tag: "{{ app_version }}"
+    source: build
+    build:
+      path: "{{ app_directory }}"
+    force_source: false
+  when:
+    - image_info.images | length == 0
+    - not (app_source.changed | default(false))
+    - not (dockerfile_source.changed | default(false))
+  tags:
+    - build
+    - deploy
+
+
+- name: Ensure application container is running
+  community.docker.docker_container:
+    name: "{{ container_name }}"
+    image: "{{ app_name }}:{{ app_version }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "{{ app_port }}:{{ container_port }}"
+    env:
+      APP_ENV: "{{ app_environment }}"
+  tags:
+    - deploy

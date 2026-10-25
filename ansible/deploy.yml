@@ -1,0 +1,8 @@
+
+---
+- name: Deploy Node.js application
+  hosts: webservers
+  become: true
+
+  roles:
+    - webapp

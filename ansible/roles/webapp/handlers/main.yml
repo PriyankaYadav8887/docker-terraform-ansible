@@ -1,0 +1,21 @@
+
+---
+- name: Rebuild and deploy application
+  community.docker.docker_image:
+    name: "{{ app_name }}"
+    tag: "{{ app_version }}"
+    source: build
+    build:
+      path: "{{ app_directory }}"
+    force_source: true
+  notify: Recreate application container
+
+- name: Recreate application container
+  community.docker.docker_container:
+    name: "{{ container_name }}"
+    image: "{{ app_name }}:{{ app_version }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "{{ app_port }}:{{ container_port }}"
+    recreate: true

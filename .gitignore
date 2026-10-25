@@ -1,0 +1,32 @@
+cat > .gitignore <<'EOF'
+# Secrets and private keys
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+.aws/
+credentials
+
+# Terraform generated files and state
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ansible sensitive files
+.vault_pass
+vault-password
+*.retry
+
+# Local development files
+node_modules/
+.vscode/
+.DS_Store
+EOF

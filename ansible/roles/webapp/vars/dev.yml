@@ -1,0 +1,9 @@
+
+---
+app_name: devops-web-app
+app_version: "1.2"
+container_name: devops-web-container
+app_port: 3000
+container_port: 3000
+app_directory: /opt/devops-app
+app_environment: development
